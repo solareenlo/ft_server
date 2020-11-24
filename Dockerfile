@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/24 09:59:22 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/24 10:52:59 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -73,10 +73,13 @@ COPY srcs /app
 WORKDIR /tmp
 
 # Install MySQL
+ENV MYSQL_VERSION 0.8.16-1
+ENV MYSQL_MD5SUM f6a7c41f04cc4fea7ade285092eea77a
+
 RUN set -eux; \
-	wget https://dev.mysql.com/get/mysql-apt-config_0.8.16-1_all.deb; \
-	md5sum -c /app/md5sum_mysql.txt; \
-	dpkg -i mysql-apt-config_0.8.16-1_all.deb; \
+	wget https://dev.mysql.com/get/mysql-apt-config_${MYSQL_VERSION}_all.deb; \
+	echo "$MYSQL_MD5SUM mysql-apt-config_${MYSQL_VERSION}_all.deb" | md5sum -c -; \
+	dpkg -i mysql-apt-config_${MYSQL_VERSION}_all.deb; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
 		mysql-server \
