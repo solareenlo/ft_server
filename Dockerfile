@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/24 10:52:59 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/24 16:31:21 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,6 @@ FROM debian:buster
 LABEL maintainer="tayamamo@student.42tokyo.jp"
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NOWARNINGS=yes
 
 RUN set -eux; \
 	apt-get update; \
@@ -32,6 +31,8 @@ RUN set -eux; \
 		ghostscript \
 	; \
 	rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp
 
 # Install php7.4
 RUN set -eux; \
@@ -68,10 +69,6 @@ RUN set -ex; \
 
 VOLUME /var/www/html
 
-COPY srcs /app
-
-WORKDIR /tmp
-
 # Install MySQL
 ENV MYSQL_VERSION 0.8.16-1
 ENV MYSQL_MD5SUM f6a7c41f04cc4fea7ade285092eea77a
@@ -80,6 +77,7 @@ RUN set -eux; \
 	wget https://dev.mysql.com/get/mysql-apt-config_${MYSQL_VERSION}_all.deb; \
 	echo "$MYSQL_MD5SUM mysql-apt-config_${MYSQL_VERSION}_all.deb" | md5sum -c -; \
 	dpkg -i mysql-apt-config_${MYSQL_VERSION}_all.deb; \
+	rm mysql-apt-config_${MYSQL_VERSION}_all.deb; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
 		mysql-server \
@@ -87,4 +85,9 @@ RUN set -eux; \
 	; \
 	rm -rf /var/lib/apt/lists/*
 
-CMD bash
+EXPOSE 80 443
+
+COPY srcs/entrypoint.sh /app/
+CMD service nginx start; \
+	service php7.4-fpm start; \
+	bash
