@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/26 05:29:11 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/26 06:55:54 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -63,14 +63,13 @@ COPY srcs/wordpress-${WORDPRESS_VERSION}.tar.gz /tmp/wordpress-${WORDPRESS_VERSI
 RUN set -ex; \
 		# curl -o wordpress.tar.gz -fSL "https://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"; \
 		echo "$WORDPRESS_SHA1 *wordpress-${WORDPRESS_VERSION}.tar.gz" | sha1sum -c -; \
-# upstream tarballs include ./wordpress/ so this gives us /usr/src/wordpress
-		tar -xzf wordpress-${WORDPRESS_VERSION}.tar.gz -C /usr/src/; \
+		tar -xzf wordpress-${WORDPRESS_VERSION}.tar.gz -C /var/www/; \
 		rm wordpress-${WORDPRESS_VERSION}.tar.gz; \
-		chown -R www-data:www-data /usr/src/wordpress; \
+		chown -R www-data:www-data /var/www/wordpress; \
 # pre-create wp-content (and single-level children) for folks who want to bind-mount themes, etc so permissions are pre-created properly instead of root:root
 # wp-content/cache: https://github.com/docker-library/wordpress/issues/534#issuecomment-705733507
 		mkdir wp-content; \
-		for dir in /usr/src/wordpress/wp-content/*/ cache; do \
+		for dir in /var/www/wordpress/wp-content/*/ cache; do \
 			dir="$(basename "${dir%/}")"; \
 			mkdir "wp-content/$dir"; \
 		done; \
@@ -123,19 +122,11 @@ RUN set -eux; \
 			|| gpg --batch --keyserver pgp.mit.edu --recv-keys "$GPGKEY" \
 			|| gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GPGKEY"; \
 		gpg --batch --verify phpMyAdmin.tar.xz.asc phpMyAdmin.tar.xz; \
-		tar -xf phpMyAdmin.tar.xz -C /var/www/html --strip-components=1; \
-		mkdir -p /var/www/html/tmp; \
-		chown www-data:www-data /var/www/html/tmp; \
-		gpgconf --kill all; \
+		mkdir /var/www/wordpress/phpmyadmin; \
+		tar -xf phpMyAdmin.tar.xz -C /var/www/wordpress/phpmyadmin --strip-components=1; \
 		rm -r "$GNUPGHOME" phpMyAdmin.tar.xz phpMyAdmin.tar.xz.asc; \
-		rm -rf /var/www/html/setup/ \
-			/var/www/html/examples/ \
-			/var/www/html/test/ \
-			/var/www/html/po/ \
-			/var/www/html/composer.json \
-			/var/www/html/RELEASE-DATE-$PHPMYADMIN_VERSION \
-			; \
-		sed -i "s@define('CONFIG_DIR'.*@define('CONFIG_DIR', '/etc/phpmyadmin/');@" /var/www/html/libraries/vendor_config.php; \
+		chown -R www-data:www-data /var/www/wordpress/phpmyadmin; \
+		gpgconf --kill all; \
 		rm -rf /var/lib/apt/lists/*
 
 # Setup SSL certificate
