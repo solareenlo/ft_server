@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/26 04:05:28 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/26 05:29:11 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -128,14 +128,21 @@ RUN set -eux; \
 		chown www-data:www-data /var/www/html/tmp; \
 		gpgconf --kill all; \
 		rm -r "$GNUPGHOME" phpMyAdmin.tar.xz phpMyAdmin.tar.xz.asc; \
-		rm -rf /var/www/html/setup/ /var/www/html/examples/ /var/www/html/test/ /var/www/html/po/ /var/www/html/composer.json /var/www/html/RELEASE-DATE-$PHPMYADMIN_VERSION; \
+		rm -rf /var/www/html/setup/ \
+			/var/www/html/examples/ \
+			/var/www/html/test/ \
+			/var/www/html/po/ \
+			/var/www/html/composer.json \
+			/var/www/html/RELEASE-DATE-$PHPMYADMIN_VERSION \
+			; \
 		sed -i "s@define('CONFIG_DIR'.*@define('CONFIG_DIR', '/etc/phpmyadmin/');@" /var/www/html/libraries/vendor_config.php; \
 		rm -rf /var/lib/apt/lists/*
 
 # Setup SSL certificate
-RUN yes "" | openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-	-keyout /etc/ssl/private/private.key \
-	-out /etc/ssl/certs/public.crt
+RUN set -eux; \
+		yes "" | openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+			-keyout /etc/ssl/private/private.key \
+			-out /etc/ssl/certs/public.crt
 
 # Setup Nginx
 COPY srcs/default.conf /etc/nginx/conf.d/default.conf
