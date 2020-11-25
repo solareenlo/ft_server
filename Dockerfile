@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/25 14:12:24 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/25 15:00:50 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,6 +91,7 @@ RUN set -eux; \
 			echo mysql-community-server mysql-community-server/root-pass password ''; \
 			echo mysql-community-server mysql-community-server/re-root-pass password ''; \
 			echo mysql-community-server mysql-community-server/remove-test-db select false; \
+			echo mysql-apt-config mysql-apt-config/select-server select mysql-5.7; \
 		} | debconf-set-selections; \
 		dpkg -i mysql-apt-config_${MYSQL_VERSION}_all.deb; \
 		rm mysql-apt-config_${MYSQL_VERSION}_all.deb; \
@@ -135,4 +136,5 @@ EXPOSE 80 443
 
 CMD service nginx start; \
 	service php7.4-fpm start; \
+	service mysql start; \
 	bash
