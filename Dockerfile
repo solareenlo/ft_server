@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/26 06:55:54 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/26 09:46:07 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -76,7 +76,7 @@ RUN set -ex; \
 		chown -R www-data:www-data wp-content; \
 		chmod -R 777 wp-content
 
-VOLUME /var/www/html
+COPY srcs/favicon.ico /var/www/wordpress/
 
 # Install MySQL
 ENV MYSQL_VERSION 0.8.16-1
@@ -100,6 +100,20 @@ RUN set -eux; \
 			mysql-client \
 		; \
 		rm -rf /var/lib/apt/lists/*
+
+# Init MySQL
+ENV DATABASE_NAME wordpress
+ENV USERNAME username
+ENV PASSWORD password
+ENV DATABASE_HOST localhost
+ENV DB_PHPMYADMIN phpmyadmin
+RUN set -eux; \
+		service mysql start; \
+		mysql -u root -e "CREATE USER '$USERNAME'@'$DATABASE_HOST' IDENTIFIED BY '$PASSWORD';";\
+		mysql -u root -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME"; \
+		mysql -u root -e "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$USERNAME'@'$DATABASE_HOST';"; \
+		mysql -u root -e "CREATE DATABASE $DB_PHPMYADMIN;"; \
+		mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_PHPMYADMIN.* TO '$USERNAME'@'$DATABASE_HOST';"
 
 # Install phpMyAdmin
 ENV PHPMYADMIN_VERSION 5.0.4
@@ -145,5 +159,5 @@ EXPOSE 80 443
 
 CMD service nginx start; \
 	service php7.4-fpm start; \
-	service mysql start; \
+	service mysql restart; \
 	bash
