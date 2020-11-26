@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/26 09:46:07 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/26 12:08:09 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,6 +51,7 @@ RUN set -eux; \
 		apt-get install -y --no-install-recommends \
 			php7.4-fpm \
 			php7.4-mysql \
+			php7.4-mbstring \
 		; \
 		rm -rf /var/lib/apt/lists/*
 
@@ -77,6 +78,7 @@ RUN set -ex; \
 		chmod -R 777 wp-content
 
 COPY srcs/favicon.ico /var/www/wordpress/
+COPY srcs/phpinfo.php /var/www/wordpress/
 
 # Install MySQL
 ENV MYSQL_VERSION 0.8.16-1
@@ -142,6 +144,8 @@ RUN set -eux; \
 		chown -R www-data:www-data /var/www/wordpress/phpmyadmin; \
 		gpgconf --kill all; \
 		rm -rf /var/lib/apt/lists/*
+
+COPY srcs/config.inc.php /var/www/wordpress/phpmyadmin/
 
 # Setup SSL certificate
 RUN set -eux; \
