@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/26 12:08:09 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/27 07:10:44 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,8 +35,6 @@ RUN set -eux; \
 		; \
 		rm -rf /var/lib/apt/lists/*
 
-WORKDIR /tmp
-
 # Install php7.4
 ENV PHP_VERSION 7.4.12
 ENV PHP_URL="https://www.php.net/distributions/php-7.4.12.tar.xz"
@@ -47,6 +45,7 @@ RUN set -eux; \
 		wget https://packages.sury.org/php/apt.gpg; \
 		apt-key add apt.gpg; \
 		echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php7.list; \
+		rm apt.gpg; \
 		apt-get update; \
 		apt-get install -y --no-install-recommends \
 			php7.4-fpm \
@@ -59,23 +58,14 @@ RUN set -eux; \
 ENV WORDPRESS_VERSION 5.5.3
 ENV WORDPRESS_SHA1 61015720c679a6cbf9ad51701f0f3fedb51b3273
 
-COPY srcs/wordpress-${WORDPRESS_VERSION}.tar.gz /tmp/wordpress-${WORDPRESS_VERSION}.tar.gz
+COPY srcs/wordpress-${WORDPRESS_VERSION}.tar.gz /wordpress-${WORDPRESS_VERSION}.tar.gz
 
 RUN set -ex; \
 		# curl -o wordpress.tar.gz -fSL "https://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"; \
 		echo "$WORDPRESS_SHA1 *wordpress-${WORDPRESS_VERSION}.tar.gz" | sha1sum -c -; \
 		tar -xzf wordpress-${WORDPRESS_VERSION}.tar.gz -C /var/www/; \
 		rm wordpress-${WORDPRESS_VERSION}.tar.gz; \
-		chown -R www-data:www-data /var/www/wordpress; \
-# pre-create wp-content (and single-level children) for folks who want to bind-mount themes, etc so permissions are pre-created properly instead of root:root
-# wp-content/cache: https://github.com/docker-library/wordpress/issues/534#issuecomment-705733507
-		mkdir wp-content; \
-		for dir in /var/www/wordpress/wp-content/*/ cache; do \
-			dir="$(basename "${dir%/}")"; \
-			mkdir "wp-content/$dir"; \
-		done; \
-		chown -R www-data:www-data wp-content; \
-		chmod -R 777 wp-content
+		chown -R www-data:www-data /var/www/wordpress
 
 COPY srcs/favicon.ico /var/www/wordpress/
 COPY srcs/phpinfo.php /var/www/wordpress/
@@ -122,8 +112,8 @@ ENV PHPMYADMIN_VERSION 5.0.4
 ENV PHPMYADMIN_SHA256 1578c1a08e594da4f4f62e676ccbdbd17784c3de769b094ba42c35bf05c057db
 ENV PHPMYADMIN_URL https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz
 
-COPY srcs/phpMyAdmin-5.0.4-all-languages.zip /tmp/phpMyAdmin-5.0.4-all-languages.zip
-COPY srcs/phpMyAdmin-5.0.4-all-languages.zip.asc /tmp/phpMyAdmin-5.0.4-all-languages.zip.asc
+#COPY srcs/phpMyAdmin-5.0.4-all-languages.zip /tmp/phpMyAdmin-5.0.4-all-languages.zip
+#COPY srcs/phpMyAdmin-5.0.4-all-languages.zip.asc /tmp/phpMyAdmin-5.0.4-all-languages.zip.asc
 ENV PHPMYADMIN_ZIP_SHA256 830bbca930d5e417ae4249931838e2c70ca0365044268fa0ede75e33aff677de
 
 RUN set -eux; \
@@ -154,10 +144,11 @@ RUN set -eux; \
 			-out /etc/ssl/certs/public.crt
 
 # Setup Nginx
-COPY srcs/default.conf /etc/nginx/conf.d/default.conf
+COPY srcs/default.conf /etc/nginx/sites-available/default.conf
 RUN set -eux; \
-		rm /etc/nginx/sites-available/default; \
-		rm /etc/nginx/sites-enabled/default
+		cd /; \
+		rm /etc/nginx/sites-enabled/default; \
+		ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/
 
 EXPOSE 80 443
 
