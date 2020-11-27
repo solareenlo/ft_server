@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/28 03:21:46 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/28 05:53:39 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,6 +33,8 @@ RUN set -eux; \
 		; \
 		rm -rf /var/lib/apt/lists/*
 
+COPY srcs/ /tmp/
+
 # Install php7.4
 ENV PHP_VERSION 7.4.12
 ENV PHP_URL="https://www.php.net/distributions/php-7.4.12.tar.xz"
@@ -56,17 +58,14 @@ RUN set -eux; \
 ENV WORDPRESS_VERSION 5.5.3
 ENV WORDPRESS_SHA1 61015720c679a6cbf9ad51701f0f3fedb51b3273
 
-COPY srcs/wordpress-${WORDPRESS_VERSION}.tar.gz /wordpress-${WORDPRESS_VERSION}.tar.gz
-
 RUN set -ex; \
 		# curl -o wordpress.tar.gz -fSL "https://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"; \
-		echo "$WORDPRESS_SHA1 *wordpress-${WORDPRESS_VERSION}.tar.gz" | sha1sum -c -; \
-		tar -xzf wordpress-${WORDPRESS_VERSION}.tar.gz -C /var/www/; \
-		rm wordpress-${WORDPRESS_VERSION}.tar.gz; \
+		echo "$WORDPRESS_SHA1 */tmp/wordpress-${WORDPRESS_VERSION}.tar.gz" | sha1sum -c -; \
+		tar -xzf /tmp/wordpress-${WORDPRESS_VERSION}.tar.gz -C /var/www/; \
+		rm /tmp/wordpress-${WORDPRESS_VERSION}.tar.gz; \
+		mv /tmp/favicon.ico /var/www/wordpress/; \
+		mv /tmp/phpinfo.php /var/www/wordpress/; \
 		chown -R www-data:www-data /var/www/wordpress
-
-COPY srcs/favicon.ico /var/www/wordpress/
-COPY srcs/phpinfo.php /var/www/wordpress/
 
 # Install MySQL
 ENV MYSQL_VERSION 0.8.16-1
@@ -91,27 +90,11 @@ RUN set -eux; \
 		; \
 		rm -rf /var/lib/apt/lists/*
 
-# Init MySQL
-ENV DATABASE_NAME wordpress
-ENV USERNAME username
-ENV PASSWORD password
-ENV DATABASE_HOST localhost
-ENV DB_PHPMYADMIN phpmyadmin
-RUN set -eux; \
-		service mysql start; \
-		mysql -u root -e "CREATE USER '$USERNAME'@'$DATABASE_HOST' IDENTIFIED BY '$PASSWORD';";\
-		mysql -u root -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME"; \
-		mysql -u root -e "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$USERNAME'@'$DATABASE_HOST';"; \
-		mysql -u root -e "CREATE DATABASE $DB_PHPMYADMIN;"; \
-		mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_PHPMYADMIN.* TO '$USERNAME'@'$DATABASE_HOST';"
-
 # Install phpMyAdmin
 ENV PHPMYADMIN_VERSION 5.0.4
 ENV PHPMYADMIN_SHA256 1578c1a08e594da4f4f62e676ccbdbd17784c3de769b094ba42c35bf05c057db
 ENV PHPMYADMIN_URL https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz
 
-#COPY srcs/phpMyAdmin-5.0.4-all-languages.zip /tmp/phpMyAdmin-5.0.4-all-languages.zip
-#COPY srcs/phpMyAdmin-5.0.4-all-languages.zip.asc /tmp/phpMyAdmin-5.0.4-all-languages.zip.asc
 ENV PHPMYADMIN_ZIP_SHA256 830bbca930d5e417ae4249931838e2c70ca0365044268fa0ede75e33aff677de
 
 RUN set -eux; \
@@ -129,11 +112,10 @@ RUN set -eux; \
 		mkdir /var/www/wordpress/phpmyadmin; \
 		tar -xf phpMyAdmin.tar.xz -C /var/www/wordpress/phpmyadmin --strip-components=1; \
 		rm -r "$GNUPGHOME" phpMyAdmin.tar.xz phpMyAdmin.tar.xz.asc; \
+		mv /tmp/config.inc.php /var/www/wordpress/phpmyadmin/; \
 		chown -R www-data:www-data /var/www/wordpress/phpmyadmin; \
 		gpgconf --kill all; \
 		rm -rf /var/lib/apt/lists/*
-
-COPY srcs/config.inc.php /var/www/wordpress/phpmyadmin/
 
 # Set up Self-Signed SSL certificate
 RUN set -eux; \
@@ -142,14 +124,12 @@ RUN set -eux; \
 			-out /etc/ssl/certs/public.crt
 
 # Set up Nginx
-COPY srcs/default.conf /etc/nginx/sites-available/default.conf
 RUN set -eux; \
+		mv /tmp/default.conf /etc/nginx/sites-available/default.conf; \
 		cd /; \
 		rm /etc/nginx/sites-enabled/default; \
 		ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/
 
 EXPOSE 80 443
 
-COPY srcs/autoindex.sh /tmp/
-COPY srcs/services.sh /tmp/
-ENTRYPOINT ["bash", "/tmp/services.sh"]
+CMD ["bash", "/tmp/services.sh"]
