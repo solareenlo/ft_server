@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/27 19:23:59 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/28 03:21:46 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,8 +30,6 @@ RUN set -eux; \
 			nginx \
 			vim \
 			xz-utils \
-# Ghostscript is required for WordPress rendering PDF previews
-			ghostscript \
 		; \
 		rm -rf /var/lib/apt/lists/*
 
@@ -137,13 +135,13 @@ RUN set -eux; \
 
 COPY srcs/config.inc.php /var/www/wordpress/phpmyadmin/
 
-# Setup SSL certificate
+# Set up Self-Signed SSL certificate
 RUN set -eux; \
 		yes "" | openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 			-keyout /etc/ssl/private/private.key \
 			-out /etc/ssl/certs/public.crt
 
-# Setup Nginx
+# Set up Nginx
 COPY srcs/default.conf /etc/nginx/sites-available/default.conf
 RUN set -eux; \
 		cd /; \
@@ -151,11 +149,6 @@ RUN set -eux; \
 		ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/
 
 EXPOSE 80 443
-
-# ENTRYPOINT	service nginx start; \
-# 			service php7.4-fpm start; \
-# 			service mysql restart; \
-# 			bash
 
 COPY srcs/autoindex.sh /tmp/
 COPY srcs/services.sh /tmp/
