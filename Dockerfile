@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/27 07:10:44 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/27 19:23:59 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -152,7 +152,11 @@ RUN set -eux; \
 
 EXPOSE 80 443
 
-CMD service nginx start; \
-	service php7.4-fpm start; \
-	service mysql restart; \
-	bash
+# ENTRYPOINT	service nginx start; \
+# 			service php7.4-fpm start; \
+# 			service mysql restart; \
+# 			bash
+
+COPY srcs/autoindex.sh /tmp/
+COPY srcs/services.sh /tmp/
+ENTRYPOINT ["bash", "/tmp/services.sh"]
