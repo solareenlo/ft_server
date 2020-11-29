@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/28 05:53:39 by tayamamo         ###   ########.fr        #
+#    Updated: 2020/11/29 21:54:34 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ FROM debian:buster
 LABEL maintainer="tayamamo@student.42tokyo.jp"
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV AUTOINDEX on
 
 RUN set -eux; \
 		apt-get update; \
