@@ -1,15 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    services.sh                                        :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2020/11/27 15:15:13 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/29 22:11:43 by tayamamo         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 #!/bin/bash
 
 DATABASE_NAME=wordpress
@@ -26,7 +14,6 @@ mysql -u root -e "CREATE DATABASE $DB_PHPMYADMIN;"
 mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_PHPMYADMIN.* TO '$USERNAME'@'$DATABASE_HOST';"
 
 sed -i -E "/autoindex/ s/AUTOINDEX/$AUTOINDEX/" /etc/nginx/sites-available/default.conf
-service nginx start
-service php7.4-fpm start
 
-bash
+service php7.4-fpm start
+/usr/sbin/nginx -g "daemon off;"

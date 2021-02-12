@@ -6,7 +6,7 @@
 #    By: tayamamo <tayamamo@student.42tokyo.jp>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/21 05:19:27 by tayamamo          #+#    #+#              #
-#    Updated: 2020/11/29 21:54:34 by tayamamo         ###   ########.fr        #
+#    Updated: 2021/02/13 02:06:32 by tayamamo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -133,4 +133,5 @@ RUN set -eux; \
 
 EXPOSE 80 443
 
+RUN chmod 744 /tmp/services.sh
 CMD ["bash", "/tmp/services.sh"]
